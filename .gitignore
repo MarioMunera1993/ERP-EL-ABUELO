@@ -1,0 +1,26 @@
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+
+# Logs and databases
+*.log
+database/*.sql
+!database/system_erp_db.sql
+!database/update_admin_password.sql
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Common build outputs
+dist/
+target/
+node_modules/
