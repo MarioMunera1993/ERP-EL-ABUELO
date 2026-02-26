@@ -7,7 +7,7 @@ Sistema Integral de Gestión de Recursos (ERP) diseñado específicamente para e
 ## ✨ Módulos Principales
 
 ### 📦 Gestión de Inventario
-- **Control de Productos**: Manejo de SKU, categorías, stock inicial y stock mínimo.
+- **Control de Productos**: Manejo de SKU, categorías, stock inicial, stock mínimo y unidad de medida (selección de lista predefinida).
 - **Alertas de Stock**: Notificaciones inteligentes cuando los productos están por agotarse.
 - **Validación de Precios**: No permite ventas por debajo del precio de adquisición.
 
@@ -33,6 +33,18 @@ Sistema Integral de Gestión de Recursos (ERP) diseñado específicamente para e
 - Ejecuta el script SQL ubicado en: `database/ferreteria_el_abuelo_db.sql`.
 - Esto creará la base de datos `ferreteria_el_abuelo_db` y los roles iniciales.
 
+> **Migración de unidades de medida**: si ya tienes productos en la tabla `products` y el campo `unit` contenía textos libres ("unidades", "kg", etc.), antes de iniciar la aplicación actualizada conviene normalizar esos valores porque ahora se usan constantes del tipo `METROS`,`KILOGRAMOS`, etc. Por ejemplo:
+> ```sql
+> UPDATE products
+> SET unit = 'UNIDAD'
+> WHERE unit IS NULL OR unit = '' OR unit = 'unidades';
+> 
+> UPDATE products
+> SET unit = 'KILOGRAMOS'
+> WHERE unit LIKE '%kg%';
+> ```
+> Ajusta según tus datos; cualquier valor no reconocido hará que Spring Boot lance un error al leer el registro.
+
 ### 2. Iniciar el Backend (Java/Spring Boot)
 Asegúrate de estar en la carpeta raíz:
 ```bash
@@ -46,6 +58,8 @@ En una nueva terminal:
 cd frontend
 npm run dev
 ```
+
+> **Nota:** el campo "Unidad de medida" ahora se elige de un menú con opciones como metros, kg, litros, docenas, etc. Esto ayuda a estandarizar los productos y facilita los cálculos de stock.
 
 ### 4. Acceso Inicial
 - **URL**: `http://localhost:5173`

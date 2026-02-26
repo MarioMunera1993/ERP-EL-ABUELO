@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import productService from '../../services/productService';
+import { getUnitAbbrev } from '../../utils/unitUtils';
 import directoryService from '../../services/directoryService';
 import saleService from '../../services/saleService';
 import { generateInvoicePDF } from '../../utils/pdfGenerator';
@@ -106,6 +107,7 @@ const SalesView = () => {
             details: cart.map(item => ({
                 product: { id: item.product.id },
                 quantity: item.quantity,
+                unit: item.product.unit,
                 unitPrice: item.unitPrice,
                 discount: item.discount
             }))
@@ -126,6 +128,7 @@ const SalesView = () => {
                 details: cart.map(item => ({
                     productName: item.product.name,
                     quantity: item.quantity,
+                    unit: item.product.unit || '',
                     unitPrice: item.unitPrice,
                     discount: item.discount,
                     ivaPercentage: item.product.ivaPercentage,
@@ -172,7 +175,7 @@ const SalesView = () => {
                         <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center hover:shadow-md transition-shadow">
                             <div>
                                 <h4 className="font-bold text-gray-800">{p.name}</h4>
-                                <p className="text-sm text-gray-500">Stock: {p.stock} | Precio: ${p.salePrice}</p>
+                                <p className="text-sm text-gray-500">Stock: {p.stock} {getUnitAbbrev(p.unit) || 'un'} | Precio: ${p.salePrice}</p>
                             </div>
                             <button
                                 onClick={() => addToCart(p)}
@@ -218,7 +221,9 @@ const SalesView = () => {
                                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                                             className="w-6 h-6 flex items-center justify-center bg-white border rounded text-gray-500 hover:bg-gray-100 text-xs"
                                         >-</button>
-                                        <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
+                                        <span className="w-8 text-center text-sm font-bold">
+                                            {item.quantity} {item.product.unit && <span className="text-xs">{getUnitAbbrev(item.product.unit)}</span>}
+                                        </span>
                                         <button
                                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                             className="w-6 h-6 flex items-center justify-center bg-white border rounded text-gray-500 hover:bg-gray-100 text-xs"

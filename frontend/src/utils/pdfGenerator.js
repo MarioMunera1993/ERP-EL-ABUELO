@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getUnitAbbrev } from './unitUtils';
 
 export const generateInvoicePDF = (sale) => {
     const doc = new jsPDF();
@@ -54,7 +55,7 @@ export const generateInvoicePDF = (sale) => {
     // Detalle de Productos
     const tableData = sale.details.map(item => [
         item.productName,
-        item.quantity,
+        item.quantity + (item.unit ? ` ${getUnitAbbrev(item.unit)}` : ''),
         `$${item.unitPrice.toLocaleString()}`,
         item.discount > 0 ? `-$${item.discount.toLocaleString()}` : '-',
         `${item.ivaPercentage}%`,

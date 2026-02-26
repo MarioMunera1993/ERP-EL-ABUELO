@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 @Entity
 @Table(name = "products")
@@ -29,6 +31,11 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    // Unidad de medida del producto, se almacena como enum (valores predefinidos)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UnitOfMeasure unit;
 
     @Column(name = "purchase_price", nullable = false)
     private BigDecimal purchasePrice;

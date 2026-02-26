@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import categoryService from '../../../services/categoryService';
+import { unitOptions } from '../../../utils/unitUtils';
 
 const ProductForm = ({ onSave, editingProduct, onCancel }) => {
     const [formData, setFormData] = useState({
         code: '',
         name: '',
         description: '',
+        unit: '',          // nueva propiedad para unidad de medida
         purchasePrice: '',
         salePrice: '',
         stock: 0,
@@ -48,6 +50,7 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
         if (editingProduct) {
             setFormData({
                 ...editingProduct,
+                unit: editingProduct.unit || '',
                 category: editingProduct.category || { id: '' }
             });
         } else {
@@ -55,6 +58,7 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
                 code: '',
                 name: '',
                 description: '',
+                unit: '',
                 purchasePrice: '',
                 salePrice: '',
                 stock: 0,
@@ -107,6 +111,20 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
                             className="p-3 bg-gray-50 rounded-xl border border-transparent focus:border-blue-500 focus:bg-white transition-all outline-none font-bold"
                             value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Unidad de medida</label>
+                        <select
+                            className="p-3 bg-gray-50 rounded-xl border border-transparent focus:border-blue-500 focus:bg-white transition-all outline-none"
+                            value={formData.unit || ''}
+                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                        >
+                            <option value="">-- Seleccionar --</option>
+                            {unitOptions.map(u => (
+                                <option key={u.value} value={u.value}>{u.label}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="flex flex-col gap-1">

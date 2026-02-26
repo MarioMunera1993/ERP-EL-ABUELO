@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import productService from '../../services/productService';
+import { getUnitAbbrev } from '../../utils/unitUtils';
 import directoryService from '../../services/directoryService';
 import purchaseService from '../../services/purchaseService';
 
@@ -136,7 +137,7 @@ const PurchaseView = () => {
                         <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 flex justify-between items-center hover:shadow-md transition-shadow">
                             <div>
                                 <h4 className="font-bold text-gray-800">{p.name}</h4>
-                                <p className="text-sm text-gray-500">Stock actual: {p.stock}</p>
+                                <p className="text-sm text-gray-500">Stock actual: {p.stock} {getUnitAbbrev(p.unit) || 'un'}</p>
                             </div>
                             <button
                                 onClick={() => addToCart(p)}
@@ -186,10 +187,13 @@ const PurchaseView = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase">Cantidad</label>
+                                    <div className="flex items-center gap-1">
                                     <input
                                         type="number" className="w-full p-2 bg-white rounded-lg border text-sm"
                                         value={item.quantity} onChange={(e) => updateItem(item.product.id, 'quantity', parseInt(e.target.value) || 0)}
                                     />
+                                    {item.product.unit && <span className="text-xs">{getUnitAbbrev(item.product.unit)}</span>}
+                                </div>
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase">Costo Unit.</label>

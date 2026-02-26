@@ -1,4 +1,5 @@
 import React from 'react';
+import { getUnitAbbrev } from '../../../utils/unitUtils';
 
 const ProductCard = ({ product, onEdit, onDelete, isLowStock }) => {
     return (
@@ -18,7 +19,7 @@ const ProductCard = ({ product, onEdit, onDelete, isLowStock }) => {
             <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Stock actual:</span>
-                    <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>{product.stock} unidades</span>
+                    <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>{product.stock} {getUnitAbbrev(product.unit) || 'unidades'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Precio compra:</span>
