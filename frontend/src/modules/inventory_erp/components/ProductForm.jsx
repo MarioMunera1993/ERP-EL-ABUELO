@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import categoryService from '../../../services/categoryService';
 import { unitOptions } from '../../../utils/unitUtils';
+import { useNotification } from '../../../context/NotificationContext';
 
 const ProductForm = ({ onSave, editingProduct, onCancel }) => {
     const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
     const [categories, setCategories] = useState([]);
     const [showCatModal, setShowCatModal] = useState(false);
     const [newCat, setNewCat] = useState({ name: '', description: '' });
+    const { notify } = useNotification();
 
     useEffect(() => {
         loadCategories();
@@ -41,8 +43,16 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
             setFormData({ ...formData, category: { id: created.id } });
             setShowCatModal(false);
             setNewCat({ name: '', description: '' });
+            notify("¡Categoría creada con éxito!", "success");
         } catch (error) {
-            alert("Error creando categoría");
+            const errorMsg = error.response?.data?.message || error.response?.data || "Error creando categoría";
+            if (errorMsg.includes("Duplicate entry") || errorMsg.includes("unique")) {
+                notify("Ya existe una categoría con ese nombre", "error");
+            } else if (error.response?.status === 403) {
+                notify("No tienes permisos para crear categorías", "error");
+            } else {
+                notify(errorMsg, "error");
+            }
         }
     };
 
@@ -72,7 +82,7 @@ const ProductForm = ({ onSave, editingProduct, onCancel }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.category.id) {
-            alert("Por favor selecciona una categoría");
+            notify("Por favor selecciona una categoría", "error");
             return;
         }
         onSave(formData);

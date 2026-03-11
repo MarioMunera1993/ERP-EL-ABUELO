@@ -33,14 +33,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/reset-admin-password").permitAll()
-                        .requestMatchers("/api/users/register").permitAll()
-                        .anyRequest().authenticated());
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/users/reset-admin-password").permitAll()
+                    .requestMatchers("/api/users/register").permitAll()
+                    // Permitir acceso público a la SPA y recursos estáticos
+                    .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
+                    .requestMatchers("/assets/**").permitAll()
+                    .requestMatchers("/static/**").permitAll()
+                    .anyRequest().authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

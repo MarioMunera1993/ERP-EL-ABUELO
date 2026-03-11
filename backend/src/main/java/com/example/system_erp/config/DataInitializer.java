@@ -34,28 +34,33 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.findByUsername("admin").ifPresentOrElse(
                 user -> {
                     Role superAdminRole = roleRepository.findByName("SUPER_ADMIN").orElse(null);
-                    if (superAdminRole != null && !user.getRole().equals(superAdminRole)) {
-                        user.setRole(superAdminRole);
-                        userRepository.save(user);
-                        System.out.println(">>> Rol de admin actualizado a SUPER_ADMIN");
+                    if (superAdminRole != null) {
+                        // Verificación segura del rol actual
+                        Role currentRole = user.getRole();
+                        if (currentRole == null || !currentRole.getName().equals("SUPER_ADMIN")) {
+                            user.setRole(superAdminRole);
+                            userRepository.save(user);
+                            System.out.println(">>> Rol de admin actualizado a SUPER_ADMIN");
+                        }
                     }
-                    if (user.getPassword().length() < 60) {
+                    if (user.getPassword() == null || user.getPassword().length() < 60) {
                         user.setPassword(passwordEncoder.encode("admin123"));
                         userRepository.save(user);
                         System.out.println(">>> Contraseña de admin reparada");
                     }
                 },
                 () -> {
-                    Role superAdminRole = roleRepository.findByName("SUPER_ADMIN").get();
-                    User admin = new User();
-                    admin.setUsername("admin");
-                    admin.setPassword(passwordEncoder.encode("admin123"));
-                    admin.setFullName("Super Administrador");
-                    admin.setEmail("admin@erp.com");
-                    admin.setRole(superAdminRole);
-                    admin.setActive(true);
-                    userRepository.save(admin);
-                    System.out.println(">>> Super Admin creado: admin / admin123");
+                    roleRepository.findByName("SUPER_ADMIN").ifPresent(superAdminRole -> {
+                        User admin = new User();
+                        admin.setUsername("admin");
+                        admin.setPassword(passwordEncoder.encode("admin123"));
+                        admin.setFullName("Super Administrador");
+                        admin.setEmail("admin@erp.com");
+                        admin.setRole(superAdminRole);
+                        admin.setActive(true);
+                        userRepository.save(admin);
+                        System.out.println(">>> Super Admin creado: admin / admin123");
+                    });
                 });
     }
 

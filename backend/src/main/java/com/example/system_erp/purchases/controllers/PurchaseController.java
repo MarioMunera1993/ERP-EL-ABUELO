@@ -26,11 +26,30 @@ public class PurchaseController {
         return purchaseRepository.findAll();
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    public ResponseEntity<?> getPurchaseById(@PathVariable Long id) {
+        return purchaseService.getPurchaseById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<?> createPurchase(@RequestBody Purchase purchase) {
         try {
             return ResponseEntity.ok(purchaseService.createPurchase(purchase));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    public ResponseEntity<?> deletePurchase(@PathVariable Long id) {
+        try {
+            purchaseService.deletePurchase(id);
+            return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

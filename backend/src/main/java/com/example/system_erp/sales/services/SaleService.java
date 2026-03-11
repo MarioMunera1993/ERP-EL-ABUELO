@@ -30,11 +30,18 @@ public class SaleService {
     @Transactional
     public Sale createSale(Sale saleRequest) {
         // 1. Obtener usuario actual (vendedor)
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername()
-                : principal.toString();
+        String tempUsername = "SYSTEM";
+        try {
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                tempUsername = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername()
+                        : principal.toString();
+            }
+        } catch (Exception e) {}
+        final String username = tempUsername;
+
         User seller = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Vendedor no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Vendedor no encontrado: " + username));
         saleRequest.setSeller(seller);
 
         BigDecimal subtotal = BigDecimal.ZERO;

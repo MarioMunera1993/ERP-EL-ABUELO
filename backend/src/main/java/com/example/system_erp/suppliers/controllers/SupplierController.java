@@ -27,17 +27,30 @@ public class SupplierController {
     private ObjectMapper objectMapper;
 
     private String getCurrentUsername() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                return SecurityContextHolder.getContext().getAuthentication().getName();
+            }
+        } catch (Exception e) {}
+        return "SYSTEM";
     }
 
     private void saveAudit(Long supplierId, String action, Object oldData, Object newData) {
         try {
+            if (supplierId == null) return;
             String oldDataJson = oldData != null ? objectMapper.writeValueAsString(oldData) : null;
             String newDataJson = newData != null ? objectMapper.writeValueAsString(newData) : null;
-            supplierAuditRepository
-                    .save(new SupplierAudit(supplierId, action, oldDataJson, newDataJson, getCurrentUsername()));
+            String username = "SYSTEM";
+            try {
+                if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                    username = SecurityContextHolder.getContext().getAuthentication().getName();
+                }
+            } catch (Exception e) {}
+            
+            supplierAuditRepository.save(new SupplierAudit(supplierId, action, oldDataJson, newDataJson, username));
         } catch (Exception e) {
             System.err.println("Error saving supplier audit: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

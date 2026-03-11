@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from '../../context/NotificationContext';
 
 const UsersView = () => {
     const [users, setUsers] = useState([]);
@@ -15,6 +16,7 @@ const UsersView = () => {
         roleId: '',
         isActive: true
     });
+    const { notify } = useNotification();
 
     const user = JSON.parse(localStorage.getItem('user'));
     const config = {
@@ -56,9 +58,10 @@ const UsersView = () => {
             setShowModal(false);
             setEditingUser(null);
             setFormData({ username: '', fullName: '', email: '', password: '', roleId: '', isActive: true });
+            notify(editingUser ? '¡Usuario actualizado con éxito!' : '¡Usuario registrado con éxito!', 'success');
             fetchData();
         } catch (error) {
-            alert(error.response?.data || 'Error guardando usuario');
+            notify(error.response?.data || 'Error guardando usuario', 'error');
         }
     };
 
@@ -79,9 +82,10 @@ const UsersView = () => {
         if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
             try {
                 await axios.delete(`/api/users/${id}`, config);
+                notify('¡Usuario eliminado con éxito!', 'success');
                 fetchData();
             } catch (error) {
-                alert('Error al eliminar');
+                notify('Error al eliminar', 'error');
             }
         }
     };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import productService from '../../services/productService';
 import ProductForm from './components/ProductForm';
 import ProductCard from './components/ProductCard';
+import { useNotification } from '../../context/NotificationContext';
 
 const InventoryView = () => {
     const [products, setProducts] = useState([]);
@@ -10,6 +11,7 @@ const InventoryView = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [alerts, setAlerts] = useState([]);
+    const { notify } = useNotification();
 
     const loadData = async () => {
         try {
@@ -35,11 +37,12 @@ const InventoryView = () => {
             } else {
                 await productService.createProduct(productData);
             }
+            notify(isEditing ? "¡Producto actualizado con éxito!" : "¡Producto creado con éxito!", "success");
             setIsEditing(false);
             setSelectedProduct(null);
             loadData();
         } catch (error) {
-            alert(error.response?.data || "Error al guardar producto");
+            notify(error.response?.data || "Error al guardar producto", "error");
         }
     };
 
@@ -47,9 +50,10 @@ const InventoryView = () => {
         if (window.confirm("¿Estás seguro de eliminar este producto?")) {
             try {
                 await productService.deleteProduct(id);
+                notify("¡Producto eliminado con éxito!", "success");
                 loadData();
             } catch (error) {
-                alert("No tienes permisos para eliminar o hubo un error.");
+                notify("No tienes permisos para eliminar o hubo un error.", "error");
             }
         }
     };

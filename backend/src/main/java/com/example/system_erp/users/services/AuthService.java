@@ -37,6 +37,7 @@ public class AuthService {
         }
         // 3. Generamos el Token REAL
         String token = jwtUtils.generateToken(user.getUsername());
-        return new AuthResponse(token, user.getUsername(), user.getRole().getName());
+        String roleName = (user.getRole() != null) ? user.getRole().getName() : "USER"; 
+        return new AuthResponse(token, user.getUsername(), roleName);
     }
 }

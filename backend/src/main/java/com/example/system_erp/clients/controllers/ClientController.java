@@ -27,17 +27,30 @@ public class ClientController {
     private ObjectMapper objectMapper;
 
     private String getCurrentUsername() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                return SecurityContextHolder.getContext().getAuthentication().getName();
+            }
+        } catch (Exception e) {}
+        return "SYSTEM";
     }
 
     private void saveAudit(Long clientId, String action, Object oldData, Object newData) {
         try {
+            if (clientId == null) return;
             String oldDataJson = oldData != null ? objectMapper.writeValueAsString(oldData) : null;
             String newDataJson = newData != null ? objectMapper.writeValueAsString(newData) : null;
-            clientAuditRepository
-                    .save(new ClientAudit(clientId, action, oldDataJson, newDataJson, getCurrentUsername()));
+            String username = "SYSTEM";
+            try {
+                if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                    username = SecurityContextHolder.getContext().getAuthentication().getName();
+                }
+            } catch (Exception e) {}
+            
+            clientAuditRepository.save(new ClientAudit(clientId, action, oldDataJson, newDataJson, username));
         } catch (Exception e) {
             System.err.println("Error saving audit: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

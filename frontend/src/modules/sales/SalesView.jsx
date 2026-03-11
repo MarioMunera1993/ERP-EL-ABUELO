@@ -4,6 +4,7 @@ import { getUnitAbbrev } from '../../utils/unitUtils';
 import directoryService from '../../services/directoryService';
 import saleService from '../../services/saleService';
 import { generateInvoicePDF } from '../../utils/pdfGenerator';
+import { useNotification } from '../../context/NotificationContext';
 
 const SalesView = () => {
     // ... rest of the code updated in the previous chunk
@@ -15,6 +16,7 @@ const SalesView = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [lastSale, setLastSale] = useState(null);
+    const { notify } = useNotification();
     const user = JSON.parse(localStorage.getItem('user'));
     const sellerName = user?.fullName || user?.username || "Vendedor";
 
@@ -39,7 +41,7 @@ const SalesView = () => {
         const existing = cart.find(item => item.product.id === product.id);
         if (existing) {
             if (existing.quantity >= product.stock) {
-                alert("No hay suficiente stock disponible.");
+                notify("No hay suficiente stock disponible.", "error");
                 return;
             }
             setCart(cart.map(item =>
@@ -47,7 +49,7 @@ const SalesView = () => {
             ));
         } else {
             if (product.stock <= 0) {
-                alert("Producto sin stock.");
+                notify("Producto sin stock.", "error");
                 return;
             }
             setCart([...cart, { product, quantity: 1, unitPrice: product.salePrice, discount: 0 }]);
@@ -67,7 +69,7 @@ const SalesView = () => {
         }
         const item = cart.find(i => i.product.id === id);
         if (numericQty > item.product.stock) {
-            alert("Excede el stock disponible.");
+            notify("Excede el stock disponible.", "error");
             return;
         }
         setCart(cart.map(i => i.product.id === id ? { ...i, quantity: numericQty } : i));
@@ -93,11 +95,11 @@ const SalesView = () => {
 
     const handleFinalizeSale = async () => {
         if (!selectedClient) {
-            alert("Por favor selecciona un cliente.");
+            notify("Por favor selecciona un cliente.", "error");
             return;
         }
         if (cart.length === 0) {
-            alert("El carrito está vacío.");
+            notify("El carrito está vacío.", "error");
             return;
         }
 
@@ -116,7 +118,7 @@ const SalesView = () => {
         try {
             setIsFinalizing(true);
             const response = await saleService.createSale(saleData);
-            alert("¡Venta registrada con éxito!");
+            notify("¡Venta registrada con éxito!", "success");
 
             setLastSale({
                 id: response.id,
@@ -145,7 +147,7 @@ const SalesView = () => {
             setDiscount(0);
             loadData();
         } catch (error) {
-            alert("Error al finalizar la venta: " + (error.response?.data || error.message));
+            notify("Error al finalizar la venta: " + (error.response?.data || error.message), "error");
         } finally {
             setIsFinalizing(false);
         }

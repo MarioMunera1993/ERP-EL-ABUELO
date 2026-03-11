@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import directoryService from '../../services/directoryService';
+import { useNotification } from '../../context/NotificationContext';
 
 const DirectoryView = () => {
     const location = useLocation();
@@ -9,6 +10,7 @@ const DirectoryView = () => {
     const [view, setView] = useState('clients'); // 'clients' or 'suppliers'
     const [formData, setFormData] = useState({ taxId: '', fullName: '', companyName: '', contactName: '', email: '', phone: '', address: '', documentType: 'CC' });
     const [editingId, setEditingId] = useState(null);
+    const { notify } = useNotification();
 
     const loadData = async () => {
         try {
@@ -43,11 +45,12 @@ const DirectoryView = () => {
                 if (editingId) await directoryService.updateSupplier(editingId, formData);
                 else await directoryService.createSupplier(formData);
             }
+            notify(view === 'clients' ? "¡Cliente guardado con éxito!" : "¡Proveedor guardado con éxito!", "success");
             setFormData({ taxId: '', fullName: '', companyName: '', contactName: '', email: '', phone: '', address: '', documentType: 'CC' });
             setEditingId(null);
             loadData();
         } catch (error) {
-            alert("Error al guardar: " + (error.response?.data || error.message));
+            notify("Error al guardar: " + (error.response?.data || error.message), "error");
         }
     };
 
@@ -56,9 +59,10 @@ const DirectoryView = () => {
         try {
             if (view === 'clients') await directoryService.deleteClient(id);
             else await directoryService.deleteSupplier(id);
+            notify("¡Registro eliminado con éxito!", "success");
             loadData();
         } catch (error) {
-            alert("No tienes permisos para eliminar.");
+            notify("No tienes permisos para eliminar.", "error");
         }
     };
 

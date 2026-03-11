@@ -1,7 +1,9 @@
 package com.example.system_erp.sales.controllers;
 
+import com.example.system_erp.products.models.Product;
 import com.example.system_erp.sales.dto.DashboardDTO;
 import com.example.system_erp.sales.models.Sale;
+import com.example.system_erp.sales.repositories.SaleDetailRepository;
 import com.example.system_erp.sales.repositories.SaleRepository;
 import com.example.system_erp.products.repositories.ProductRepository;
 import com.example.system_erp.clients.repositories.ClientRepository;
@@ -9,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +26,9 @@ public class DashboardController {
     private SaleRepository saleRepository;
 
     @Autowired
+    private SaleDetailRepository saleDetailRepository;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -31,23 +39,34 @@ public class DashboardController {
     public DashboardDTO getDashboardStats() {
         DashboardDTO dto = new DashboardDTO();
 
+        // 1. Ventas Totales (Histórico)
         List<Sale> allSales = saleRepository.findAll();
-
-        // Ventas Totales
         dto.setTotalSales(allSales.stream()
                 .map(Sale::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        // Conteos Básicos
+        // 2. Ventas del Día
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        BigDecimal daily = saleRepository.sumTotalSalesFrom(startOfDay);
+        dto.setDailySales(daily != null ? daily : BigDecimal.ZERO);
+
+        // 3. Conteos Básicos
         dto.setTotalProducts(productRepository.count());
         dto.setTotalClients(clientRepository.count());
 
-        // Stock Bajo (stock <= stockMin)
-        dto.setLowStockProducts(productRepository.findAll().stream()
-                .filter(p -> p.getStock() <= p.getStockMin())
-                .count());
+        // 4. Stock Bajo (Detallado)
+        List<Product> lowStockItems = productRepository.findAll().stream()
+                .filter(p -> p.getIsActive() && p.getStock() <= p.getStockMin())
+                .collect(Collectors.toList());
+        dto.setLowStockProducts(lowStockItems.size());
+        dto.setLowStockList(lowStockItems);
 
-        // Ventas Recientes (Últimas 5)
+        // 5. Productos Más Vendidos
+        dto.setTopSellingProducts(saleDetailRepository.findTopSellingProducts().stream()
+                .limit(5)
+                .collect(Collectors.toList()));
+
+        // 6. Ventas Recientes (Últimas 5)
         dto.setRecentSales(allSales.stream()
                 .sorted(Comparator.comparing(Sale::getSaleDate).reversed())
                 .limit(5)
@@ -60,9 +79,7 @@ public class DashboardController {
                     return map;
                 }).collect(Collectors.toList()));
 
-        // Esto es una simplificación - En un ERP real usaríamos queries agregadas
-        dto.setSalesByDay(new ArrayList<>());
-        dto.setTopSellingProducts(new ArrayList<>());
+        dto.setSalesByDay(new ArrayList<>()); // Opcional para gráficas futuras
 
         return dto;
     }

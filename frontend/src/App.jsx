@@ -9,9 +9,12 @@ import PurchaseView from './modules/purchases/PurchaseView';
 import UsersView from './modules/users/UsersView';
 import './App.css';
 
+import { NotificationProvider } from './context/NotificationContext';
+
 function App() {
   return (
-    <Router>
+    <NotificationProvider>
+      <Router>
       <div className="App">
         <Routes>
           {/* Rutas Públicas */}
@@ -34,7 +37,8 @@ function App() {
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>
-    </Router>
+     </Router>
+    </NotificationProvider>
   );
 }
 

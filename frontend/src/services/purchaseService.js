@@ -17,9 +17,21 @@ const createPurchase = async (purchase) => {
     return response.data;
 };
 
+const getPurchaseById = async (id) => {
+    const response = await axios.get(`${API_URL}/${id}`, { headers: getAuthHeaders() });
+    return response.data;
+};
+
+const deletePurchase = async (id) => {
+    const response = await axios.delete(`${API_URL}/${id}`, { headers: getAuthHeaders() });
+    return response.data;
+};
+
 const purchaseService = {
     getPurchases,
-    createPurchase
+    createPurchase,
+    getPurchaseById,
+    deletePurchase
 };
 
 export default purchaseService;

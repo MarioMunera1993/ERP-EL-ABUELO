@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PurchaseService {
@@ -30,11 +32,18 @@ public class PurchaseService {
     @Transactional
     public Purchase createPurchase(Purchase purchaseRequest) {
         // 1. Obtener comprador (usuario actual)
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername()
-                : principal.toString();
+        String tempUsername = "SYSTEM";
+        try {
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                tempUsername = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername()
+                        : principal.toString();
+            }
+        } catch (Exception e) {}
+        final String username = tempUsername;
+
         User purchaser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Comprador no encontrado: " + username));
         purchaseRequest.setPurchaser(purchaser);
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -67,5 +76,28 @@ public class PurchaseService {
         purchaseRequest.setPurchaseDate(LocalDateTime.now());
 
         return purchaseRepository.save(purchaseRequest);
+    }
+
+    public List<Purchase> getAllPurchases() {
+        return purchaseRepository.findAll();
+    }
+
+    public Optional<Purchase> getPurchaseById(Long id) {
+        return purchaseRepository.findById(id);
+    }
+
+    @Transactional
+    public void deletePurchase(Long id) {
+        Purchase purchase = purchaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compra no encontrada: " + id));
+
+        // Revertir stock
+        for (PurchaseDetail detail : purchase.getDetails()) {
+            Product product = detail.getProduct();
+            product.setStock(product.getStock() - detail.getQuantity());
+            productRepository.save(product);
+        }
+
+        purchaseRepository.delete(purchase);
     }
 }
